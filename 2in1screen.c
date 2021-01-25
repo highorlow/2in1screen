@@ -17,9 +17,9 @@ char *COOR[]  = {"1 0 0 0 1 0 0 0 1",	"-1 0 1 0 -1 1 0 0 1", 	"0 -1 1 1 0 0 0 0 
 // char *TOUCH[] = {"enable", 				"disable", 				"disable", 				"disable"};
 
 double accel_y = 0.0,
-#if N_STATE == 4
+//#if N_STATE == 4
 	   accel_x = 0.0,
-#endif
+//#endif
 	   accel_g = 7.0;
 
 int current_state = 0;
@@ -27,12 +27,14 @@ int current_state = 0;
 int rotation_changed(){
 	int state = 0;
 
-	if(accel_y < -accel_g) state = 0;
-	else if(accel_y > accel_g) state = 1;
-#if N_STATE == 4
+	if ((accel_x < 5 && accel_x > 0) || (accel_x > 5 && accel_x <0)) {
+		if(accel_y < -accel_g) state = 0;
+		else if(accel_y > accel_g) state = 1;
+	}
+//#if N_STATE == 4
 	else if(accel_x > accel_g) state = 2;
 	else if(accel_x < -accel_g) state = 3;
-#endif
+//#endif
 
 	if(current_state!=state){
 		current_state = state;
@@ -58,7 +60,7 @@ FILE* bdopen(char const *fname, char leave_open){
 void rotate_screen(){
 	sprintf(command, "xrandr -o %s", ROT[current_state]);
 	system(command);
-	sprintf(command, "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s", "Wacom HID 4846 Finger", COOR[current_state]);
+	sprintf(command, "xinput set-prop \"%s\" \"Coordinate Transformation Matrix\" %s", "Wacom Pen and multitouch sensor Finger touch", COOR[current_state]);
 	system(command);
 }
 
@@ -84,19 +86,19 @@ int main(int argc, char const *argv[]) {
 	double scale = atof(content);
 
 	FILE *dev_accel_y = bdopen("in_accel_y_raw", 1);
-#if N_STATE == 4
+//#if N_STATE == 4
 	FILE *dev_accel_x = bdopen("in_accel_x_raw", 1);
-#endif
+//#endif
 
 	while(1){
 		fseek(dev_accel_y, 0, SEEK_SET);
 		fgets(content, DATA_SIZE, dev_accel_y);
 		accel_y = atof(content) * scale;
-#if N_STATE == 4
+//#if N_STATE == 4
 		fseek(dev_accel_x, 0, SEEK_SET);
 		fgets(content, DATA_SIZE, dev_accel_x);
 		accel_x = atof(content) * scale;
-#endif
+//#endif
 		if(rotation_changed())
 			rotate_screen();
 		sleep(2);
